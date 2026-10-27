@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileVault</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="file-manager">
+    <!-- Левая панель -->
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <img class="sidebar-logo" src="img/logo.png" alt="">
+            FileVault
+        </div>
+
+        <div class="tree">
+            <div id="root-dir" class="tree-item tree-item--root">
+                <span class="tree-icon">📁</span>
+                <span>Мои файлы</span>
+            </div>
+
+            <div id="dirs" class="tree-children"></div>
+        </div>
+
+    </aside>
+
+    <!-- Правая часть -->
+    <main class="content">
+
+        <!-- Панель инструментов -->
+        <div class="toolbar">
+
+            <button class="toolbar-button" title="Назад" id="to-root" disabled>
+                ←
+            </button>
+
+            <div class="toolbar-separator"></div>
+
+            <button class="toolbar-button toolbar-button--add" title="Добавить файлы" id="add-files">📄</button>
+            <input type="file" id="file-input" multiple hidden>
+
+            <button class="toolbar-button toolbar-button--add" title="Создать папку" id="create-dir">📁</button>
+
+            <!-- Видна вместо кнопок выше, пока выделены файлы -->
+            <div class="selection-bar">
+                <span class="selection-bar__count" id="selection-count"></span>
+                <button type="button" class="selection-bar__button" id="selection-move">📂 Переместить</button>
+                <button type="button" class="selection-bar__button selection-bar__button--danger" id="selection-delete">🗑 Удалить</button>
+                <button type="button" class="selection-bar__button" id="selection-clear">✕ Отменить</button>
+            </div>
+
+        </div>
+
+        <!-- Текущий путь -->
+        <div class="breadcrumb">
+            <span>Мои файлы</span>
+            <span id="breadcrumb-separator" class="breadcrumb-separator hide">›</span>
+            <span id="breadcrumb-name"></span>
+        </div>
+
+        <!-- Файлы -->
+        <section id="files" class="file-grid"></section>
+    </main>
+</div>
+
+<!-- Затемнение фона -->
+<div class="modal-overlay" id="upload-modal">
+
+    <!-- Само окно -->
+    <div class="upload-modal">
+
+        <!-- Шапка -->
+        <div class="upload-modal__header">
+            Загрузка файлов
+        </div>
+
+        <!-- Содержимое -->
+        <div class="upload-modal__body">
+
+            <!-- Статус -->
+            <div class="upload-modal__status" id="upload-status">
+                Идет загрузка
+            </div>
+
+            <!-- Прогресс -->
+            <div class="upload-progress">
+
+                <div
+                    class="upload-progress__bar"
+                    id="upload-progress-bar"
+                    style="width: 0%;"
+                ></div>
+
+                <div class="upload-progress__text" id="upload-progress-text">
+                    0 / 0
+                </div>
+
+            </div>
+
+            <!-- Ошибки -->
+            <div class="upload-errors" id="upload-errors">
+                <!-- Ошибки добавляются сюда через JS -->
+
+                <!-- Пример:
+                <div class="upload-error">
+                    <strong>photo.jpg:</strong>
+                    Не удалось загрузить файл
+                </div>
+                -->
+
+            </div>
+
+        </div>
+
+        <!-- Нижняя часть -->
+        <div class="upload-modal__footer">
+
+            <button
+                type="button"
+                class="upload-modal__close"
+                id="upload-modal-close"
+                disabled
+            >
+                Закрыть
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Создание папки -->
+<div class="modal-overlay" id="dir-modal">
+
+    <form class="upload-modal" id="dir-form">
+
+        <div class="upload-modal__header">
+            Новая папка
+        </div>
+
+        <div class="upload-modal__body">
+
+            <label class="dir-form__label" for="dir-name">Имя</label>
+            <input type="text" class="dir-form__input" id="dir-name" autocomplete="off">
+
+            <label class="dir-form__label" for="dir-description">Описание</label>
+            <textarea class="dir-form__input dir-form__textarea" id="dir-description" rows="3"></textarea>
+
+            <div class="dir-form__error hide" id="dir-error"></div>
+
+        </div>
+
+        <div class="upload-modal__footer dir-form__footer">
+            <button type="button" class="upload-modal__close" id="dir-cancel">Отмена</button>
+            <button type="submit" class="upload-modal__close" id="dir-submit">Создать</button>
+        </div>
+
+    </form>
+
+</div>
+
+<!-- Просмотрщик фото и видео -->
+<div class="viewer" id="viewer">
+
+    <div class="viewer__header">
+        <span class="viewer__name" id="viewer-name"></span>
+
+        <button type="button" class="viewer__button" id="viewer-rename" title="Переименовать">✏️</button>
+        <button type="button" class="viewer__button" id="viewer-delete" title="Удалить">🗑</button>
+        <a class="viewer__button" id="viewer-download" href="#" title="Скачать">⬇</a>
+        <button type="button" class="viewer__button" id="viewer-close" title="Закрыть">✕</button>
+    </div>
+
+    <div class="viewer__stage">
+        <button type="button" class="viewer__nav viewer__nav--prev" id="viewer-prev" title="Предыдущий">‹</button>
+
+        <img class="viewer__media viewer__placeholder hide" id="viewer-placeholder" alt="">
+        <div class="viewer__spinner hide" id="viewer-spinner"></div>
+        <img class="viewer__media hide" id="viewer-image" alt="">
+        <video class="viewer__media hide" id="viewer-video" controls preload="metadata"></video>
+        <div class="viewer__error hide" id="viewer-error">Не удалось открыть файл</div>
+
+        <button type="button" class="viewer__nav viewer__nav--next" id="viewer-next" title="Следующий">›</button>
+    </div>
+
+</div>
+
+<!-- Перенос файлов -->
+<div class="modal-overlay" id="move-modal">
+
+    <div class="upload-modal">
+
+        <div class="upload-modal__header" id="move-title"></div>
+
+        <div class="upload-modal__body">
+            <div class="move-list" id="move-list"></div>
+            <div class="upload-modal__status hide" id="move-status"></div>
+        </div>
+
+        <div class="upload-modal__footer">
+            <button type="button" class="upload-modal__close" id="move-cancel">Отмена</button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Меню папки в сайдбаре -->
+<div class="dir-menu hide" id="dir-menu">
+    <button type="button" class="dir-menu__item" id="dir-menu-rename">✏️ Переименовать</button>
+    <button type="button" class="dir-menu__item dir-menu__item--danger" id="dir-menu-delete">🗑 Удалить</button>
+</div>
+
+<div class="modal-overlay modal-overlay--top" id="rename-modal">
+
+    <form class="upload-modal" id="rename-form">
+
+        <div class="upload-modal__header">
+            Переименовать
+        </div>
+
+        <div class="upload-modal__body">
+
+            <label class="dir-form__label" for="rename-name">Имя</label>
+            <div class="rename-form__row">
+                <input type="text" class="dir-form__input" id="rename-name" autocomplete="off">
+                <span class="rename-form__ext" id="rename-ext"></span>
+            </div>
+
+            <div class="dir-form__error hide" id="rename-error"></div>
+
+        </div>
+
+        <div class="upload-modal__footer dir-form__footer">
+            <button type="button" class="upload-modal__close" id="rename-cancel">Отмена</button>
+            <button type="submit" class="upload-modal__close" id="rename-submit">Сохранить</button>
+        </div>
+
+    </form>
+
+</div>
+
+<script src="jquery.min.js"></script>
+<script src="app.js"></script>
+<script src="viewer.js"></script>
+</body>
+</html>
