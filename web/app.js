@@ -20,18 +20,53 @@ const viewableTypes = [
 
 const isViewable = mimeType => viewableTypes.includes(mimeType)
 
-const uploadModal = {
-    modal: $('#upload-modal'),
-    status: $('#upload-status'),
-    progressBar: $('#upload-progress-bar'),
-    progressText: $('#upload-progress-text'),
-    errors: $('#upload-errors'),
-    closeButton: $('#upload-modal-close'),
+const uploadTexts = {
+    title: 'Загрузка файлов',
+    running: 'Идет загрузка',
+    done: 'Файлы успешно загружены',
+    failed: 'Загрузка завершена с ошибками',
+    stopped: 'Загрузка остановлена',
+}
 
-    show(total) {
+const deleteTexts = {
+    title: 'Удаление файлов',
+    running: 'Идет удаление',
+    done: 'Файлы удалены',
+    failed: 'Удаление завершено с ошибками',
+    stopped: 'Удаление остановлено',
+}
+
+const moveTexts = {
+    title: 'Перенос файлов',
+    running: 'Идет перенос',
+    done: 'Файлы перенесены',
+    failed: 'Перенос завершен с ошибками',
+    stopped: 'Перенос остановлен',
+}
+
+const progressModal = {
+    modal: $('#progress-modal'),
+    title: $('#progress-title'),
+    status: $('#progress-status'),
+    progressBar: $('#progress-bar'),
+    progressText: $('#progress-text'),
+    errors: $('#progress-errors'),
+    closeButton: $('#progress-close'),
+    stopButton: $('#progress-stop'),
+    isOpen: false,
+    stopped: false,
+    texts: null,
+
+    show(texts, total) {
+        this.texts = texts;
+        this.stopped = false;
+        this.stopButton.text('Стоп').prop({ hidden: false, disabled: false });
+
+        this.isOpen = true;
         this.modal.css('display','flex');
 
-        this.status.text('Идет загрузка');
+        this.title.text(texts.title);
+        this.status.text(texts.running);
 
         this.progressBar.css('width', '0%');
         this.progressText.text(`0 / ${total}`);
@@ -41,13 +76,13 @@ const uploadModal = {
         this.closeButton.prop('disabled', true);
     },
 
-    updateProgress(uploaded, total) {
+    updateProgress(processed, total) {
         const percent = total === 0
             ? 0
-            : Math.round((uploaded / total) * 100);
+            : Math.round((processed / total) * 100);
 
         this.progressBar.css('width',`${percent}%`);
-        this.progressText.text(`${uploaded} / ${total}`);
+        this.progressText.text(`${processed} / ${total}`);
     },
 
     addError(filename, message) {
@@ -60,16 +95,25 @@ const uploadModal = {
         this.errors.scrollTop(this.errors[0].scrollHeight);
     },
 
-    finish(success) {
-        this.status.text(success
-            ? 'Файлы успешно загружены'
-            : 'Загрузка завершена с ошибками'
-        );
+    // Текущий файл обрабатывается до конца, следующий не начинается
+    stop() {
+        this.stopped = true;
+        this.stopButton.text('Останавливаю…').prop('disabled', true);
+    },
 
+    finish(success) {
+        if (this.stopped) {
+            this.status.text(this.texts.stopped);
+        } else {
+            this.status.text(success ? this.texts.done : this.texts.failed);
+        }
+
+        this.stopButton.prop('hidden', true);
         this.closeButton.prop('disabled', false);
     },
 
     hide() {
+        this.isOpen = false;
         this.modal.css('display', 'none');
     }
 };
@@ -141,10 +185,7 @@ const moveModal = {
     modal: $('#move-modal'),
     title: $('#move-title'),
     list: $('#move-list'),
-    status: $('#move-status'),
-    cancelButton: $('#move-cancel'),
     files: [],
-    busy: false,
 
     show(files) {
         const dirIds = [rootDirId, ...$('#dirs').children().map((i, row) => $(row).data('dir-id')).get()]
@@ -162,21 +203,9 @@ const moveModal = {
                     .attr('data-move-dir-id', dir.id)
                     .text(`📁 ${dir.is_root ? 'Мои файлы' : dir.name}`))
             })
-        this.status.addClass('hide').text('')
-        this.setBusy(false)
 
         this.modal.css('display', 'flex')
         this.list.find('button').first().trigger('focus')
-    },
-
-    setBusy(busy) {
-        this.busy = busy
-        this.list.find('button').prop('disabled', busy)
-        this.cancelButton.prop('disabled', busy)
-    },
-
-    showStatus(text) {
-        this.status.text(text).removeClass('hide')
     },
 
     hide() {
@@ -390,30 +419,29 @@ const requestMoveFile = (fileId, dirId) => {
 
 const moveFiles = async (files, targetDirId) => {
     const sourceDirId = selectedDirId
-    const failed = []
+    let processedCounter = 0
+    let hasErrors = false
 
-    moveModal.setBusy(true)
-
-    for (const [index, file] of files.entries()) {
-        moveModal.showStatus(`Перенос… ${index + 1}/${files.length}`)
+    moveModal.hide()
+    progressModal.show(moveTexts, files.length)
+    for (const file of files) {
+        if (progressModal.stopped) break
         try {
             await requestMoveFile(file.id, targetDirId)
             selection.ids.delete(file.id)
             removeFileCard(file.id, sourceDirId)
         } catch (err) {
             console.error(file.original_name, err)
-            failed.push(`${file.original_name} — ${err.message}`)
+            progressModal.addError(file.original_name, err.message)
+            hasErrors = true
         }
+        processedCounter ++
+        progressModal.updateProgress(processedCounter, files.length)
     }
-
-    moveModal.hide()
     updateCountFilesInDir(sourceDirId)
     updateCountFilesInDir(targetDirId)
     renderSelection()
-
-    if (failed.length > 0) {
-        alert(`Не удалось перенести ${pluralFiles(failed.length)}:\n${failed.join('\n')}`)
-    }
+    progressModal.finish(!hasErrors)
 }
 
 const renderSelection = () => {
@@ -700,11 +728,11 @@ $('#move-modal').on('keydown', event => {
     if (event.key !== 'Escape') return
 
     event.stopPropagation()
-    if (!moveModal.busy) moveModal.hide()
+    moveModal.hide()
 })
 
 $(document).on('keydown', event => {
-    if (event.key === 'Escape' && !viewer.isOpen && selection.ids.size > 0) clearSelection()
+    if (event.key === 'Escape' && !viewer.isOpen && !progressModal.isOpen && selection.ids.size > 0) clearSelection()
 })
 
 $('#selection-delete').on('click', async function () {
@@ -712,33 +740,28 @@ $('#selection-delete').on('click', async function () {
     if (files.length === 0) return
     if (!confirm(`Удалить ${pluralFiles(files.length)}? Отменить будет нельзя.`)) return
 
-    const button = $(this)
     const dirId = selectedDirId
-    const failed = []
+    let processedCounter = 0
+    let hasErrors = false
 
-    button.prop('disabled', true)
-    $('#selection-clear').prop('disabled', true)
-
-    for (const [index, file] of files.entries()) {
-        button.text(`Удаление… ${index + 1}/${files.length}`)
+    progressModal.show(deleteTexts, files.length)
+    for (const file of files) {
+        if (progressModal.stopped) break
         try {
             await requestDeleteFile(file.id)
             selection.ids.delete(file.id)
             removeFileCard(file.id, dirId)
         } catch (err) {
             console.error(file.original_name, err)
-            failed.push(file.original_name)
+            progressModal.addError(file.original_name, err.message)
+            hasErrors = true
         }
+        processedCounter ++
+        progressModal.updateProgress(processedCounter, files.length)
     }
-
-    button.text('🗑 Удалить').prop('disabled', false)
-    $('#selection-clear').prop('disabled', false)
     updateCountFilesInDir(dirId)
     renderSelection()
-
-    if (failed.length > 0) {
-        alert(`Не удалось удалить ${pluralFiles(failed.length)}:\n${failed.join('\n')}`)
-    }
+    progressModal.finish(!hasErrors)
 })
 
 $(document).on('click', '.file-delete', function (event) {
@@ -846,20 +869,21 @@ $('#file-input').on('change', async function () {
 
     this.value = ''
 
-    uploadModal.show(totalFiles)
+    progressModal.show(uploadTexts, totalFiles)
     for (const file of files) {
+        if (progressModal.stopped) break
         try {
             await uploadFile(file, dirId)
         } catch (err) {
             console.error(file.name, err)
-            uploadModal.addError(file.name, err)
+            progressModal.addError(file.name, err.message)
             hasErrors = true
         }
         processedCounter ++
-        uploadModal.updateProgress(processedCounter, totalFiles)
+        progressModal.updateProgress(processedCounter, totalFiles)
     }
     updateCountFilesInDir(dirId)
-    uploadModal.finish(!hasErrors)
+    progressModal.finish(!hasErrors)
 })
 
 $('#create-dir').on('click', () => dirModal.show())
@@ -886,6 +910,8 @@ $('#dir-form').on('submit', function (event) {
         })
 })
 
-uploadModal.closeButton.on('click', () => {
-    uploadModal.hide();
+progressModal.closeButton.on('click', () => {
+    progressModal.hide();
 });
+
+progressModal.stopButton.on('click', () => progressModal.stop());

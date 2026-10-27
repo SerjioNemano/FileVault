@@ -676,6 +676,7 @@ body {
 .upload-modal__footer {
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
 
     padding: 10px 16px;
 
@@ -995,18 +996,9 @@ body {
     border-bottom: none;
 }
 
-.move-list__item:hover:not(:disabled),
+.move-list__item:hover,
 .move-list__item:focus-visible {
     color: #ffffff;
     background: #316ac5;
     outline: none;
-}
-
-.move-list__item:disabled {
-    color: #999;
-    cursor: default;
-}
-
-.move-list + .upload-modal__status {
-    margin: 10px 0 0;
 }
