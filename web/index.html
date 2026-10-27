@@ -70,21 +70,19 @@
 </div>
 
 <!-- Затемнение фона -->
-<div class="modal-overlay" id="upload-modal">
+<div class="modal-overlay" id="progress-modal">
 
     <!-- Само окно -->
     <div class="upload-modal">
 
         <!-- Шапка -->
-        <div class="upload-modal__header">
-            Загрузка файлов
-        </div>
+        <div class="upload-modal__header" id="progress-title"></div>
 
         <!-- Содержимое -->
         <div class="upload-modal__body">
 
             <!-- Статус -->
-            <div class="upload-modal__status" id="upload-status">
+            <div class="upload-modal__status" id="progress-status">
                 Идет загрузка
             </div>
 
@@ -93,18 +91,18 @@
 
                 <div
                     class="upload-progress__bar"
-                    id="upload-progress-bar"
+                    id="progress-bar"
                     style="width: 0%;"
                 ></div>
 
-                <div class="upload-progress__text" id="upload-progress-text">
+                <div class="upload-progress__text" id="progress-text">
                     0 / 0
                 </div>
 
             </div>
 
             <!-- Ошибки -->
-            <div class="upload-errors" id="upload-errors">
+            <div class="upload-errors" id="progress-errors">
                 <!-- Ошибки добавляются сюда через JS -->
 
                 <!-- Пример:
@@ -124,7 +122,15 @@
             <button
                 type="button"
                 class="upload-modal__close"
-                id="upload-modal-close"
+                id="progress-stop"
+            >
+                Стоп
+            </button>
+
+            <button
+                type="button"
+                class="upload-modal__close"
+                id="progress-close"
                 disabled
             >
                 Закрыть
@@ -201,7 +207,6 @@
 
         <div class="upload-modal__body">
             <div class="move-list" id="move-list"></div>
-            <div class="upload-modal__status hide" id="move-status"></div>
         </div>
 
         <div class="upload-modal__footer">
