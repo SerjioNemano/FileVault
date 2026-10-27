@@ -1,0 +1,15 @@
+.DS_Store
+
+/tmp/
+
+/storage/
+
+.env
+.env.local
+
+*.zip
+*.dump
+*.sql.gz
+
+*.exe
+*.out

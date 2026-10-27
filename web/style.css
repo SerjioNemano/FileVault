@@ -1,0 +1,1012 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 13px;
+    color: #222;
+    background: #ffffff;
+}
+
+.hide {
+    display: none;
+}
+
+
+/* Основной контейнер */
+
+.file-manager {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+
+/* Сайдбар */
+
+.sidebar {
+    width: 230px;
+    min-width: 230px;
+    height: 100%;
+    background: #f0f0f0;
+    border-right: 1px solid #999;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 10px;
+    font-weight: bold;
+    color: #ffffff;
+    background: #316ac5;
+    border-bottom: 1px solid #1f4f9a;
+}
+
+.sidebar-logo {
+    width: 22px;
+    height: 22px;
+}
+
+
+/* Дерево директорий  */
+
+.tree {
+    padding: 6px 4px;
+}
+
+.tree-children {
+    padding-left: 18px;
+}
+
+.tree-item {
+    display: flex;
+    align-items: center;
+    height: 27px;
+    padding: 0 6px;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+}
+
+.tree-item:hover {
+    background: #dce6f5;
+}
+
+.tree-item--menu-open {
+    background: #dce6f5;
+}
+
+.tree-item--active {
+    color: #ffffff;
+    background: #316ac5;
+    border-color: #204a87;
+}
+
+.tree-name {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.fileCount {
+    flex-shrink: 0;
+    white-space: pre;
+}
+
+.tree-menu {
+    flex-shrink: 0;
+    margin-left: auto;
+    width: 22px;
+    height: 20px;
+    padding: 0;
+
+    font-size: 14px;
+    line-height: 1;
+    color: inherit;
+
+    background: transparent;
+    border: none;
+    border-radius: 2px;
+
+    cursor: pointer;
+    visibility: hidden;
+}
+
+.tree-item:hover .tree-menu,
+.tree-item--active .tree-menu,
+.tree-item--menu-open .tree-menu,
+.tree-menu:focus-visible {
+    visibility: visible;
+}
+
+@media (hover: none) {
+    .tree-menu {
+        visibility: visible;
+    }
+}
+
+.tree-menu:hover {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.tree-item--active .tree-menu:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.tree-icon {
+    width: 22px;
+    margin-right: 4px;
+    font-size: 14px;
+}
+
+
+/* Рабочая область */
+
+.content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: #ffffff;
+}
+
+
+/* Панель инструментов */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    height: 42px;
+    min-height: 42px;
+    padding: 5px 8px;
+    background: #eeeeee;
+    border-bottom: 1px solid #aaa;
+}
+
+.toolbar-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 28px;
+    padding: 0;
+    font-size: 18px;
+    font-family: Arial, sans-serif;
+    color: #333;
+    background: linear-gradient(#ffffff, #e5e5e5);
+    border: 1px solid #999;
+    border-radius: 2px;
+    cursor: pointer;
+    margin: 0px 3px 0 3px;
+}
+
+.toolbar-button:hover {
+    background: #ffffff;
+    border-color: #666;
+}
+
+.toolbar-button:active {
+    background: #d8d8d8;
+}
+
+.toolbar-button--add {
+    position: relative;
+    font-size: 16px;
+}
+
+.toolbar-button--add::after {
+    content: '+';
+    position: absolute;
+    right: 1px;
+    bottom: 1px;
+    width: 11px;
+    height: 11px;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 11px;
+    text-align: center;
+    color: #fff;
+    background: #316ac5;
+    border-radius: 50%;
+}
+
+/* Панель выделения подменяет обычные кнопки тулбара */
+.selection-bar {
+    display: none;
+    align-items: center;
+    gap: 8px;
+}
+
+.toolbar--selecting > * {
+    display: none;
+}
+
+.toolbar--selecting > .selection-bar {
+    display: flex;
+}
+
+.selection-bar__count {
+    min-width: 90px;
+    font-weight: bold;
+}
+
+.selection-bar__button {
+    height: 28px;
+    padding: 0 10px;
+
+    font-family: inherit;
+    font-size: 13px;
+    color: #222;
+
+    background: linear-gradient(#ffffff, #e5e5e5);
+    border: 1px solid #999;
+    border-radius: 2px;
+
+    cursor: pointer;
+}
+
+.selection-bar__button:hover:not(:disabled) {
+    background: #ffffff;
+    border-color: #666;
+}
+
+.selection-bar__button--danger:hover:not(:disabled) {
+    color: #b00020;
+}
+
+.selection-bar__button:disabled {
+    color: #999;
+    cursor: default;
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 25px;
+
+    margin-left: 8px;
+    margin-right: 8px;
+
+    background: #bbb;
+}
+
+
+/* Крошки */
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 12px;
+    color: #555;
+    background: #fafafa;
+    border-bottom: 1px solid #ddd;
+}
+
+.breadcrumb-separator {
+    margin: 0 7px;
+    color: #999;
+}
+
+
+/* Плитка */
+
+.file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 150px);
+    align-content: start;
+    gap: 14px;
+    padding: 14px;
+    overflow-y: auto;
+}
+
+
+/* Файл */
+
+.file-card {
+    width: 150px;
+    padding: 5px;
+    background: #ffffff;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.file-card:hover {
+    background: #eaf2ff;
+    border-color: #9dbce8;
+}
+
+.file-card:active {
+    background: #d5e5ff;
+}
+
+/* Карточка, которую нельзя открыть в просмотрщике: кликаются только иконки */
+.file-card--download-only {
+    cursor: default;
+}
+
+.file-card--download-only:active {
+    background: #eaf2ff;
+}
+
+.file-preview {
+    position: relative;
+    width: 138px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #eeeeee;
+    border: 1px solid #ccc;
+}
+
+.file-preview img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Скачать / удалить — поверх превью, видны при наведении на карточку. */
+.file-actions {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.file-card:hover .file-actions,
+.file-card:focus-within .file-actions {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .file-actions {
+        opacity: 1;
+    }
+}
+
+.file-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+    padding: 0;
+
+    font-size: 13px;
+    text-decoration: none;
+    color: #222;
+
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+    cursor: pointer;
+}
+
+.file-action:hover {
+    background: #ffffff;
+}
+
+.file-delete:hover {
+    background: #ffd6dc;
+}
+
+.file-action:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* Выделение: чекбокс */
+.file-select {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 22px;
+    height: 22px;
+    padding: 0;
+
+    font-size: 13px;
+    font-weight: bold;
+    color: transparent;
+
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid #c7c7c7;
+    border-radius: 50%;
+
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.file-card:hover .file-select,
+.file-select:focus-visible,
+.file-grid--selecting .file-select {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .file-select {
+        opacity: 1;
+    }
+}
+
+.file-card--selected .file-select {
+    color: #ffffff;
+    background: #316ac5;
+    border-color: #316ac5;
+}
+
+.file-card--selected,
+.file-card--selected:hover {
+    background: #d5e5ff;
+    border-color: #316ac5;
+}
+
+/* В режиме выделения действия — в панели, а не на карточках */
+.file-grid--selecting .file-actions {
+    display: none;
+}
+
+.file-grid--selecting .file-card {
+    cursor: pointer;
+}
+
+.file-name {
+    width: 100%;
+    margin-top: 5px;
+    padding: 2px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #222;
+}
+
+
+/* =========================================
+   Затемнение страницы
+   ========================================= */
+
+.modal-overlay {
+    display: none;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 1000;
+
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(0, 0, 0, 0.35);
+}
+
+
+/* =========================================
+   Модальное окно
+   ========================================= */
+
+.upload-modal {
+    width: 520px;
+
+    background: #f0f0f0;
+
+    border: 1px solid #666;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+
+/* =========================================
+   Шапка
+   ========================================= */
+
+.upload-modal__header {
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 10px;
+
+    font-weight: bold;
+
+    color: #ffffff;
+
+    background: #316ac5;
+
+    border-bottom: 1px solid #204a87;
+}
+
+
+/* =========================================
+   Основная часть
+   ========================================= */
+
+.upload-modal__body {
+    padding: 16px;
+}
+
+
+/* =========================================
+   Статус
+   ========================================= */
+
+.upload-modal__status {
+    margin-bottom: 10px;
+
+    font-weight: bold;
+
+    color: #333;
+}
+
+
+/* =========================================
+   Прогресс
+   ========================================= */
+
+.upload-progress {
+    position: relative;
+
+    width: 100%;
+    height: 24px;
+
+    overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid #888;
+}
+
+
+/*
+ * Заполненная часть
+ */
+
+.upload-progress__bar {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width: 0%;
+
+    background: #316ac5;
+}
+
+
+/*
+ * Текст поверх прогресс-бара
+ */
+
+.upload-progress__text {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 12px;
+    font-weight: bold;
+
+    color: #222;
+
+    pointer-events: none;
+}
+
+
+/* =========================================
+   Окно ошибок
+   ========================================= */
+
+.upload-errors {
+    width: 100%;
+    height: 120px;
+
+    margin-top: 14px;
+
+    padding: 6px;
+
+    overflow-y: auto;
+
+    background: #ffffff;
+
+    border: 1px solid #888;
+}
+
+
+/*
+ * Отдельная ошибка
+ */
+
+.upload-error {
+    padding: 4px 5px;
+
+    border-bottom: 1px solid #eeeeee;
+
+    color: #a00000;
+
+    line-height: 18px;
+}
+
+.upload-error:last-child {
+    border-bottom: none;
+}
+
+
+/* =========================================
+   Нижняя часть
+   ========================================= */
+
+.upload-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+
+    padding: 10px 16px;
+
+    border-top: 1px solid #ccc;
+}
+
+
+/* =========================================
+   Кнопка
+   ========================================= */
+
+.upload-modal__close {
+    min-width: 80px;
+    height: 26px;
+
+    padding: 2px 12px;
+
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 12px;
+
+    color: #222;
+
+    background: linear-gradient(
+        #ffffff,
+        #e5e5e5
+    );
+
+    border: 1px solid #888;
+    border-radius: 2px;
+
+    cursor: pointer;
+}
+
+.upload-modal__close:hover:not(:disabled) {
+    background: #ffffff;
+}
+
+.upload-modal__close:active:not(:disabled) {
+    background: #d8d8d8;
+}
+
+.upload-modal__close:disabled {
+    color: #999;
+
+    cursor: default;
+
+    background: #e5e5e5;
+}
+
+/* Просмотрщик фото и видео */
+
+.viewer {
+    display: none;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 1000;
+
+    flex-direction: column;
+
+    background: rgba(0, 0, 0, 0.92);
+}
+
+.viewer__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 12px;
+
+    color: #eee;
+}
+
+.viewer__name {
+    flex: 1;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.viewer__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    font-size: 18px;
+    color: #eee;
+    text-decoration: none;
+
+    background: transparent;
+    border: 1px solid #555;
+    border-radius: 2px;
+
+    cursor: pointer;
+}
+
+.viewer__button:hover {
+    background: #333;
+}
+
+.viewer__stage {
+    flex: 1;
+    min-height: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 0 8px 12px;
+}
+
+.viewer__media {
+    max-width: calc(100% - 112px);
+    max-height: 100%;
+
+    object-fit: contain;
+}
+
+.viewer__nav {
+    flex: 0 0 48px;
+    height: 96px;
+
+    font-size: 40px;
+    color: #eee;
+
+    background: transparent;
+    border: none;
+
+    cursor: pointer;
+}
+
+.viewer__nav:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.viewer__nav:disabled {
+    color: #444;
+
+    cursor: default;
+}
+
+/* Превью вместо оригинала, пока тот грузится: растянуто на всю сцену,
+   размытие прячет, что в нём всего 320 px */
+/* Стрелки всегда по краям, что бы ни было между ними: auto-отступы
+   забирают свободное место, содержимое остаётся по центру */
+.viewer__nav--prev {
+    margin-right: auto;
+}
+
+.viewer__nav--next {
+    margin-left: auto;
+}
+
+.viewer__placeholder {
+    width: calc(100% - 112px);
+    height: 100%;
+
+    filter: blur(6px);
+}
+
+/* Появляется через 200 мс: загрузка из кэша не успеет его мигнуть */
+.viewer__spinner {
+    width: 40px;
+    height: 40px;
+
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #eee;
+    border-radius: 50%;
+
+    opacity: 0;
+    animation: viewer-spin 0.8s linear infinite, viewer-appear 0s 0.2s forwards;
+}
+
+@keyframes viewer-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes viewer-appear {
+    to {
+        opacity: 1;
+    }
+}
+
+.viewer__error {
+    color: #bbb;
+    font-size: 16px;
+}
+
+/* Форма создания папки */
+
+.dir-form__label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+.dir-form__input {
+    display: block;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 4px 6px;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 13px;
+    border: 1px solid #999;
+}
+
+.dir-form__textarea {
+    resize: vertical;
+}
+
+.dir-form__error {
+    color: #a00000;
+}
+
+.dir-form__footer {
+    gap: 8px;
+}
+
+.modal-overlay--top {
+    z-index: 1100;
+}
+
+.rename-form__row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.rename-form__row .dir-form__input {
+    flex: 1;
+}
+
+.rename-form__ext {
+    color: #666;
+}
+
+/* Меню папки */
+.dir-menu {
+    position: fixed;
+    z-index: 900;
+
+    min-width: 170px;
+    padding: 2px;
+
+    background: #ffffff;
+    border: 1px solid #888;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.dir-menu__item {
+    display: block;
+    width: 100%;
+    padding: 5px 10px;
+
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+    color: #222;
+
+    background: transparent;
+    border: none;
+
+    cursor: pointer;
+}
+
+.dir-menu__item:hover {
+    color: #ffffff;
+    background: #316ac5;
+}
+
+.dir-menu__item--danger:hover {
+    background: #b00020;
+}
+
+.rename-form__ext:empty {
+    display: none;
+}
+
+/* Список папок для переноса */
+.move-list {
+    max-height: 320px;
+    overflow-y: auto;
+
+    background: #ffffff;
+    border: 1px solid #ccc;
+}
+
+.move-list__item {
+    display: block;
+    width: 100%;
+    padding: 6px 10px;
+
+    font-family: inherit;
+    font-size: 13px;
+    text-align: left;
+    color: #222;
+
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #eee;
+
+    cursor: pointer;
+}
+
+.move-list__item:last-child {
+    border-bottom: none;
+}
+
+.move-list__item:hover:not(:disabled),
+.move-list__item:focus-visible {
+    color: #ffffff;
+    background: #316ac5;
+    outline: none;
+}
+
+.move-list__item:disabled {
+    color: #999;
+    cursor: default;
+}
+
+.move-list + .upload-modal__status {
+    margin: 10px 0 0;
+}

@@ -1,0 +1,8 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main ./cmd/filevault"
+  entrypoint = ["./tmp/main"]
+  include_ext = ["go", "html", "css", "js", "png"]
+  exclude_dir = ["tmp", "webp", "storage"]
